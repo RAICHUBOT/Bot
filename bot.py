@@ -82,6 +82,11 @@ def main():
     valbz_fake_price_list=[]
     vale_fake_price_list=[]
     vale_valbz_spread_list=[]
+
+    xlf_bid_price_list=[]
+    xlf_ask_price_list=[]
+    xlf_fake_price_list=[]
+
     while True:
         g_order_id += 1
         message = exchange.read_message()
@@ -199,6 +204,38 @@ def main():
                     cur_buy_order_id=g_order_id
                     if_need_new_buy=False
                     print("Put order Type {} Buy Price {} Size {}".format("BOND", bond_buy_price, bond_buy_size))
+            
+            elif message["symbol"] == "XLF":
+                def best_price(side):
+                    if message[side]:
+                        return message[side][0][0]
+                
+                xlf_bid_price = best_price("buy")
+                xlf_ask_price = best_price("sell")
+                if (xlf_bid_price!=None) and (xlf_ask_price!=None):
+                    xlf_is_init=1
+                if xlf_bid_price!=None :
+                    if len(xlf_bid_price_list)>10:
+                        del xlf_bid_price_list[0]
+                    xlf_bid_price_list.append(xlf_bid_price)
+                if xlf_ask_price!=None :
+                    if len(xlf_ask_price_list)>10:
+                        del xlf_ask_price_list[0]
+                    xlf_ask_price_list.append(xlf_ask_price)
+                if  (len(xlf_bid_price_list)>=1) and (len(xlf_ask_price_list)>=1):
+                    xlf_fake_price=(xlf_bid_price_list[-1]+xlf_ask_price_list[-1])/2
+                    if xlf_fake_price!=None :
+                        if len(xlf_fake_price_list)>15:
+                            del xlf_fake_price_list[0]
+                        xlf_fake_price_list.append(xlf_fake_price)
+                    if len(xlf_fake_price_list)>=5:
+                        xlf_mean=sum(xlf_fake_price_list)/len(xlf_fake_price_list)
+                        if xlf_ask_price != None and xlf_ask_price < xlf_mean:
+                            exchange.send_add_message(order_id=g_order_id, symbol="XLF", dir=Dir.BUY, price=xlf_ask_price, size=1)
+                        if xlf_bid_price != None and xlf_bid_price > xlf_mean:
+                            exchange.send_add_message(order_id=g_order_id, symbol="XLF", dir=Dir.SELL, price=xlf_bid_price, size=1)
+
+    xlf_fake_price_list=[]
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
