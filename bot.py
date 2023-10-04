@@ -88,6 +88,7 @@ def main():
         elif message["type"] == "fill":
             print(message)
         elif message["type"]=="out":
+            print(message)
             if int(message["order_id"])==cur_sell_order_id:
                 if_need_new_sell=True
             if int(message["order_id"])==cur_buy_order_id:
@@ -108,12 +109,12 @@ def main():
 
                 if now > vale_last_print_time + 1:
                     vale_last_print_time = now
-                    print(
-                        {
-                            "vale_bid_price": vale_bid_price,
-                            "vale_ask_price": vale_ask_price,
-                        }
-                    )
+                    # print(
+                    #     {
+                    #         "vale_bid_price": vale_bid_price,
+                    #         "vale_ask_price": vale_ask_price,
+                    #     }
+                    # )
             
             elif message["symbol"] == "BOND":
                 print(message)
@@ -130,7 +131,7 @@ def main():
                 if if_need_new_buy:
                     exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.BUY, price=bond_buy_price, size=bond_buy_size)
                     cur_buy_order_id=g_order_id
-                    # if_need_new_buy=False
+                    if_need_new_buy=False
                     print("Put order Type {} Buy Price {} Size {}".format("BOND", bond_buy_price, bond_buy_size))
 
 
