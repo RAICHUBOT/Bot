@@ -42,7 +42,7 @@ def main():
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=990, size=1)
+    # exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=990, size=1)
 
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
@@ -62,8 +62,12 @@ def main():
     # message. Sending a message in response to every exchange message will
     # cause a feedback loop where your bot's messages will quickly be
     # rate-limited and ignored. Please, don't do that!
+    g_order_id = 0
+    bond_cnt=0
     while True:
+        g_order_id += 1
         message = exchange.read_message()
+        # print(message)
 
         # Some of the message types below happen infrequently and contain
         # important information to help you understand what your bot is doing,
@@ -100,6 +104,30 @@ def main():
                             "vale_ask_price": vale_ask_price,
                         }
                     )
+            
+            elif message["symbol"] == "BOND":
+
+                def best_price(side):
+                    if message[side]:
+                        return message[side][0][0], message[side][0][1]
+
+
+                print(message)
+                # if bond_cnt > 10:
+                    # continue
+                bond_bid_price, cur_bid_size = best_price("buy")
+                bond_ask_price, cur_ask_size = best_price("sell")
+
+                # if message["buy"] != []:
+                # We sell
+                exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.SELL, price=1001, size=cur_bid_size)
+                bond_cnt += 1
+                print("We Type {} Sell Price {} Size {}".format("BOND", bond_bid_price, 1))
+                # if message["sell"] != [] and bond_ask_price <= 1000:
+                # we buy
+                exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.BUY, price=999, size=cur_ask_size)
+                bond_cnt += 1
+                print("We Type {} Buy Price {} Size {}".format("BOND", bond_ask_price, 1))
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
