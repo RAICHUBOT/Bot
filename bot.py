@@ -110,31 +110,24 @@ def main():
                     )
             
             elif message["symbol"] == "BOND":
-
-                def best_price(side):
-                    if message[side]:
-                        return message[side][0][0], message[side][0][1]
-
+                bond_sell_price=1001
+                bond_buy_price=999
+                bond_sell_size=10
+                bond_buy_size=message["sell"][0][1]
 
                 print(message)
-                # if bond_cnt > 10:
-                    # continue
-                bond_bid_price, cur_bid_size = best_price("buy")
-                bond_ask_price, cur_ask_size = best_price("sell")
 
-                # if message["buy"] != []:
                 # We sell
                 if if_need_new_sell:
-                    exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.SELL, price=1001, size=10)
+                    exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.SELL, price=bond_sell_price, size=bond_sell_size)
                     bond_cnt += 1
                     my_cur_id=g_order_id
                     if_need_new_sell=False
-                print("We Type {} Sell Price {} Size {}".format("BOND", bond_bid_price, 1))
-                # if message["sell"] != [] and bond_ask_price <= 1000:
+                    print("Put order Type {} Sell Price {} Size {}".format("BOND", bond_sell_price, bond_sell_size))
                 # we buy
-                exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.BUY, price=999, size=cur_ask_size)
+                exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.BUY, price=bond_buy_price, size=bond_buy_size)
                 bond_cnt += 1
-                print("We Type {} Buy Price {} Size {}".format("BOND", bond_ask_price, 1))
+                print("Put order Type {} Buy Price {} Size {}".format("BOND", bond_buy_price, bond_buy_size))
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
