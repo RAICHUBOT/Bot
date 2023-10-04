@@ -63,8 +63,10 @@ def main():
     # cause a feedback loop where your bot's messages will quickly be
     # rate-limited and ignored. Please, don't do that!
     g_order_id = 0
-    bond_cnt=0
+    cur_sell_order_id=-1
+    cur_buy_order_id=-1
     if_need_new_sell=True
+    if_need_new_buy=True
     while True:
         g_order_id += 1
         message = exchange.read_message()
@@ -86,9 +88,13 @@ def main():
         elif message["type"] == "fill":
             print(message)
         elif message["type"]=="out":
-            if int(message["order_id"])==my_cur_id:
+            if int(message["order_id"])==cur_sell_order_id:
                 if_need_new_sell=True
+            elif int(message["order_id"])==cur_buy_order_id:
+                if_need_new_buy=True
         elif message["type"] == "book":
+            print(message)
+
             if message["symbol"] == "VALE":
 
                 def best_price(side):
@@ -113,21 +119,18 @@ def main():
                 bond_sell_price=1001
                 bond_buy_price=999
                 bond_sell_size=10
-                bond_buy_size=message["sell"][0][1]
-
-                print(message)
-
-                # We sell
+                bond_buy_size=10
+                
                 if if_need_new_sell:
                     exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.SELL, price=bond_sell_price, size=bond_sell_size)
-                    bond_cnt += 1
-                    my_cur_id=g_order_id
+                    cur_sell_order_id=g_order_id
                     if_need_new_sell=False
                     print("Put order Type {} Sell Price {} Size {}".format("BOND", bond_sell_price, bond_sell_size))
-                # we buy
-                exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.BUY, price=bond_buy_price, size=bond_buy_size)
-                bond_cnt += 1
-                print("Put order Type {} Buy Price {} Size {}".format("BOND", bond_buy_price, bond_buy_size))
+                if if_need_new_buy:
+                    cur_buy_order_id=g_order_id
+                    if_need_new_buy=False
+                    exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.BUY, price=bond_buy_price, size=bond_buy_size)
+                    print("Put order Type {} Buy Price {} Size {}".format("BOND", bond_buy_price, bond_buy_size))
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
