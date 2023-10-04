@@ -64,6 +64,7 @@ def main():
     # rate-limited and ignored. Please, don't do that!
     g_order_id = 0
     bond_cnt=0
+    if_need_new_sell=True
     while True:
         g_order_id += 1
         message = exchange.read_message()
@@ -84,6 +85,9 @@ def main():
             print(message)
         elif message["type"] == "fill":
             print(message)
+        elif message["type"]=="out":
+            if int(message["order_id"])==my_cur_id:
+                if_need_new_sell=True
         elif message["type"] == "book":
             if message["symbol"] == "VALE":
 
@@ -120,8 +124,11 @@ def main():
 
                 # if message["buy"] != []:
                 # We sell
-                exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.SELL, price=1001, size=cur_bid_size)
-                bond_cnt += 1
+                if if_need_new_sell:
+                    exchange.send_add_message(order_id=g_order_id, symbol="BOND", dir=Dir.SELL, price=1001, size=10)
+                    bond_cnt += 1
+                    my_cur_id=g_order_id
+                    if_need_new_sell=False
                 print("We Type {} Sell Price {} Size {}".format("BOND", bond_bid_price, 1))
                 # if message["sell"] != [] and bond_ask_price <= 1000:
                 # we buy
