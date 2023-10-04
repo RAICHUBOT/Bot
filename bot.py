@@ -67,6 +67,21 @@ def main():
     cur_buy_order_id=-1
     if_need_new_sell=True
     if_need_new_buy=True
+
+    cur_vale_bid_price =0
+    
+    vale_valbf_spread_list =0
+    vale_is_trade=0
+    valbz_is_trade=0
+    vale_is_init=0
+    valbz_is_init=0
+    vale_bid_price_list=[]
+    vale_ask_price_list=[]
+    valbz_bid_price_list=[]
+    valbz_ask_price_list=[]
+    valbz_fake_price_list=[]
+    vale_fake_price_list=[]
+    vale_valbz_spread_list=[]
     while True:
         g_order_id += 1
         message = exchange.read_message()
@@ -95,27 +110,78 @@ def main():
                 if_need_new_buy=True
         elif message["type"] == "book":
             # print(message)
-
             if message["symbol"] == "VALE":
-
                 def best_price(side):
                     if message[side]:
                         return message[side][0][0]
-
                 vale_bid_price = best_price("buy")
                 vale_ask_price = best_price("sell")
+                if (vale_bid_price!=None) and (vale_ask_price!=None):
+                    vale_is_init=1
 
                 now = time.time()
-
                 if now > vale_last_print_time + 1:
                     vale_last_print_time = now
-                    # print(
-                    #     {
-                    #         "vale_bid_price": vale_bid_price,
-                    #         "vale_ask_price": vale_ask_price,
-                    #     }
-                    # )
-            
+                    print(
+                        {
+                            "vale_bid_price": vale_bid_price,
+                            "vale_ask_price": vale_ask_price,
+                        }
+                    )
+                if vale_bid_price!=None :
+                    if len(vale_bid_price_list)>10:
+                        del vale_bid_price_list[0]
+                    vale_bid_price_list.append(vale_bid_price)
+                if vale_ask_price!=None :
+                    if len(vale_ask_price_list)>10:
+                        del vale_ask_price_list[0]
+                    vale_ask_price_list.append(vale_ask_price)
+                if (len(vale_bid_price_list)>=1) and (len(vale_ask_price_list)>=1) and (len(valbz_bid_price_list)>=1) and (len(valbz_ask_price_list)>=1):
+                    vale_fake_price=(vale_bid_price_list[-1]+vale_ask_price_list[-1])/2
+                    valbz_fake_price=(valbz_bid_price_list[-1]+valbz_ask_price_list[-1])/2
+                    if vale_fake_price!=None :
+                        if len(vale_fake_price_list)>10:
+                            del vale_fake_price_list[0]
+                        vale_fake_price_list.append(vale_fake_price)
+
+            if message["symbol"] == "VALBZ":
+                def best_price(side):
+                    if message[side]:
+                        return message[side][0][0]
+                
+                valbz_bid_price = best_price("buy")
+                valbz_ask_price = best_price("sell")
+                if (valbz_bid_price!=None) and (valbz_ask_price!=None):
+                    valbz_is_init=1
+                now = time.time()
+                if now > vale_last_print_time + 1:
+                    vale_last_print_time = now
+                    print(
+                        {
+                            "valbz_bid_price": vale_bid_price,
+                            "valbz_ask_price": vale_ask_price,
+                        }
+                    )
+                if valbz_bid_price!=None :
+                    if len(valbz_bid_price_list)>10:
+                        del valbz_bid_price_list[0]
+                    valbz_bid_price_list.append(valbz_bid_price)
+                if valbz_ask_price!=None :
+                    if len(valbz_ask_price_list)>10:
+                        del valbz_ask_price_list[0]
+                    valbz_ask_price_list.append(valbz_ask_price)
+                if  (len(vale_bid_price_list)>=1) and (len(vale_ask_price_list)>=1) and (len(valbz_bid_price_list)>=1) and (len(valbz_ask_price_list)>=1):
+                    vale_fake_price=(vale_bid_price_list[-1]+vale_ask_price_list[-1])/2
+                    valbz_fake_price=(valbz_bid_price_list[-1]+valbz_ask_price_list[-1])/2
+                    if valbz_fake_price!=None :
+                        if len(valbz_fake_price_list)>10:
+                            del valbz_fake_price_list[0]
+                        valbz_fake_price_list.append(valbz_fake_price)
+                    if (valbz_fake_price>sum(valbz_fake_price_list) / len(valbz_fake_price_list)) and vale_is_init==1:
+                        exchange.send_add_message(order_id=g_order_id, symbol="VALE", dir=Dir.BUY, price=vale_bid_price, size=1)
+                    elif valbz_is_init==1:
+                        exchange.send_add_message(order_id=g_order_id, symbol="VALE", dir=Dir.SELL, price=vale_ask_price, size=1)
+
             elif message["symbol"] == "BOND":
                 print(message)
                 bond_sell_price=1001
