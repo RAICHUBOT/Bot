@@ -87,6 +87,29 @@ def main():
     xlf_ask_price_list=[]
     xlf_fake_price_list=[]
 
+    gs_bid_price_list=[]
+    gs_ask_price_list=[]
+    gs_fake_price_list=[]
+
+    ms_bid_price_list=[]
+    ms_ask_price_list=[]
+    ms_fake_price_list=[]
+
+    wfc_bid_price_list=[]
+    wfc_ask_price_list=[]
+    wfc_fake_price_list=[]
+
+    ms_ask_price=0
+    ms_bid_price=0
+    gs_ask_price=0
+    gs_bid_price=0
+    wfc_ask_price=0
+    wfc_bid_price=0
+
+    gs_is_init=0
+    ms_is_init=0
+    wfc_is_init=0
+
     while True:
         g_order_id += 1
         message = exchange.read_message()
@@ -234,6 +257,98 @@ def main():
                             exchange.send_add_message(order_id=g_order_id, symbol="XLF", dir=Dir.BUY, price=xlf_ask_price, size=1)
                         if xlf_bid_price != None and xlf_bid_price > xlf_mean:
                             exchange.send_add_message(order_id=g_order_id, symbol="XLF", dir=Dir.SELL, price=xlf_bid_price, size=1)
+            
+            elif message["symbol"] == "GS":
+                def best_price(side):
+                    if message[side]:
+                        return message[side][0][0]
+                
+                gs_bid_price = best_price("buy")
+                gs_ask_price = best_price("sell")
+                if (gs_bid_price!=None) and (gs_ask_price!=None):
+                    gs_is_init=1
+                if gs_bid_price!=None :
+                    if len(gs_bid_price_list)>10:
+                        del gs_bid_price_list[0]
+                    gs_bid_price_list.append(gs_bid_price)
+                if gs_ask_price!=None :
+                    if len(gs_ask_price_list)>10:
+                        del gs_ask_price_list[0]
+                    gs_ask_price_list.append(gs_ask_price)
+                if  (len(gs_bid_price_list)>=1) and (len(gs_ask_price_list)>=1):
+                    gs_fake_price=(gs_bid_price_list[-1]+gs_ask_price_list[-1])/2
+                    if gs_fake_price!=None :
+                        if len(gs_fake_price_list)>15:
+                            del gs_fake_price_list[0]
+                        gs_fake_price_list.append(gs_fake_price)
+                    if len(gs_fake_price_list)>=5:
+                        gs_mean=sum(gs_fake_price_list)/len(gs_fake_price_list)
+                        if gs_ask_price != None and gs_ask_price < gs_mean:
+                            exchange.send_add_message(order_id=g_order_id, symbol="GS", dir=Dir.BUY, price=gs_ask_price, size=1)
+                        if gs_bid_price != None and gs_bid_price > gs_mean:
+                            exchange.send_add_message(order_id=g_order_id, symbol="GS", dir=Dir.SELL, price=gs_bid_price, size=1)
+
+
+
+            elif message["symbol"] == "MS":
+                def best_price(side):
+                    if message[side]:
+                        return message[side][0][0]
+                
+                ms_bid_price = best_price("buy")
+                ms_ask_price = best_price("sell")
+                if (ms_bid_price!=None) and (ms_ask_price!=None):
+                    ms_is_init=1
+                if ms_bid_price!=None :
+                    if len(ms_bid_price_list)>10:
+                        del ms_bid_price_list[0]
+                    ms_bid_price_list.append(ms_bid_price)
+                if ms_ask_price!=None :
+                    if len(ms_ask_price_list)>10:
+                        del ms_ask_price_list[0]
+                    ms_ask_price_list.append(ms_ask_price)
+                if  (len(ms_bid_price_list)>=1) and (len(ms_ask_price_list)>=1):
+                    ms_fake_price=(ms_bid_price_list[-1]+ms_ask_price_list[-1])/2
+                    if ms_fake_price!=None :
+                        if len(ms_fake_price_list)>15:
+                            del ms_fake_price_list[0]
+                        ms_fake_price_list.append(ms_fake_price)
+                    if len(ms_fake_price_list)>=5:
+                        ms_mean=sum(ms_fake_price_list)/len(ms_fake_price_list)
+                        if ms_ask_price != None and ms_ask_price < ms_mean:
+                            exchange.send_add_message(order_id=g_order_id, symbol="MS", dir=Dir.BUY, price=ms_ask_price, size=1)
+                        if ms_bid_price != None and ms_bid_price > ms_mean:
+                            exchange.send_add_message(order_id=g_order_id, symbol="MS", dir=Dir.SELL, price=ms_bid_price, size=1)
+
+            elif message["symbol"] == "WFC":
+                def best_price(side):
+                    if message[side]:
+                        return message[side][0][0]
+                
+                wfc_bid_price = best_price("buy")
+                wfc_ask_price = best_price("sell")
+                if (wfc_bid_price!=None) and (wfc_ask_price!=None):
+                    wfc_is_init=1
+                if wfc_bid_price!=None :
+                    if len(wfc_bid_price_list)>10:
+                        del wfc_bid_price_list[0]
+                    wfc_bid_price_list.append(wfc_bid_price)
+                if wfc_ask_price!=None :
+                    if len(wfc_ask_price_list)>10:
+                        del wfc_ask_price_list[0]
+                    wfc_ask_price_list.append(wfc_ask_price)
+                if  (len(wfc_bid_price_list)>=1) and (len(wfc_ask_price_list)>=1):
+                    wfc_fake_price=(wfc_bid_price_list[-1]+wfc_ask_price_list[-1])/2
+                    if wfc_fake_price!=None :
+                        if len(wfc_fake_price_list)>15:
+                            del wfc_fake_price_list[0]
+                        wfc_fake_price_list.append(wfc_fake_price)
+                    if len(wfc_fake_price_list)>=5:
+                        wfc_mean=sum(wfc_fake_price_list)/len(wfc_fake_price_list)
+                        if wfc_ask_price != None and wfc_ask_price < wfc_mean:
+                            exchange.send_add_message(order_id=g_order_id, symbol="WFC", dir=Dir.BUY, price=wfc_ask_price, size=1)
+                        if wfc_bid_price != None and wfc_bid_price > wfc_mean:
+                            exchange.send_add_message(order_id=g_order_id, symbol="WFC", dir=Dir.SELL, price=wfc_bid_price, size=1)
 
     xlf_fake_price_list=[]
 
